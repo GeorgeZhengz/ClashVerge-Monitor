@@ -101,3 +101,5 @@
 
 *   如果你的 Clash Verge 安装路径不是默认路径，监控程序可能会提示找不到路径，请确保 Clash Verge 正在运行，或者手动修改 `TrayMonitor.ps1` 中的路径。
 *   本程序依赖 PowerShell，Windows 10/11 系统自带。
+
+<!-- Config test -->
