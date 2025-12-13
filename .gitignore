@@ -1,0 +1,5 @@
+*.log
+chat.json
+window_state.json
+ClashVergeMonitor_Source/
+.vscode/
