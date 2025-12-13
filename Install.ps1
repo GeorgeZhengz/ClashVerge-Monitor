@@ -90,5 +90,3 @@ if ($RunNow -eq 'Y' -or $RunNow -eq 'y') {
 }
 
 Write-Host "`nInstallation Complete!" -ForegroundColor Cyan
-Write-Host "按任意键退出..."
-$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
