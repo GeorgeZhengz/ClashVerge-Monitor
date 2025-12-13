@@ -160,6 +160,45 @@ $menuItemAutoRestart.add_Click({
 })
 $contextMenu.MenuItems.Add($menuItemAutoRestart) | Out-Null
 
+# Start on Boot Toggle
+$menuItemStartOnBoot = New-Object System.Windows.Forms.MenuItem
+$menuItemStartOnBoot.Text = "Start on Boot"
+$StartupLnkPath = Join-Path ([System.Environment]::GetFolderPath('Startup')) "VPN_Clash_Monitor.lnk"
+$menuItemStartOnBoot.Checked = (Test-Path $StartupLnkPath)
+
+$menuItemStartOnBoot.add_Click({
+    $menuItemStartOnBoot.Checked = -not $menuItemStartOnBoot.Checked
+    if ($menuItemStartOnBoot.Checked) {
+        # Enable Start on Boot
+        try {
+            $WshShell = New-Object -ComObject WScript.Shell
+            $Shortcut = $WshShell.CreateShortcut($StartupLnkPath)
+            $Shortcut.TargetPath = Join-Path $PSScriptRoot "Run_Monitor.bat"
+            $Shortcut.WorkingDirectory = $PSScriptRoot
+            $Shortcut.WindowStyle = 7 # Minimized
+            $Shortcut.IconLocation = "$env:SystemRoot\System32\shell32.dll,18"
+            $Shortcut.Description = "Clash Monitor AutoStart"
+            $Shortcut.Save()
+            Write-Log "Start on Boot Enabled"
+        } catch {
+            Write-Log "Failed to enable Start on Boot: $_"
+            $menuItemStartOnBoot.Checked = $false # Revert if failed
+        }
+    } else {
+        # Disable Start on Boot
+        try {
+            if (Test-Path $StartupLnkPath) {
+                Remove-Item $StartupLnkPath -Force
+                Write-Log "Start on Boot Disabled"
+            }
+        } catch {
+            Write-Log "Failed to disable Start on Boot: $_"
+            $menuItemStartOnBoot.Checked = $true # Revert if failed
+        }
+    }
+})
+$contextMenu.MenuItems.Add($menuItemStartOnBoot) | Out-Null
+
 $menuItemExit = New-Object System.Windows.Forms.MenuItem
 $menuItemExit.Text = "Exit Monitor"
 $menuItemExit.add_Click({
