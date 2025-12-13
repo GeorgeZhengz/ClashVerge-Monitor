@@ -5,6 +5,7 @@
 ## 包含内容
 
 1.  **stable-config.yaml**: 
+    *   **内置免费源**：已预置多个免费订阅源，开箱即用。
     *   优化的分流规则（去广告、自动选择最快节点、故障转移）。
     *   高频健康检查（每分钟），防止长时间断连。
     *   智能 DNS 配置，防止 DNS 污染。
@@ -30,7 +31,16 @@
     *   进入 **Profiles (配置)** 界面。
     *   右键点击空白处或点击刷新按钮。
     *   选择新出现的 `stable-config` 并激活。
+配置说明（可选）
 
+如果你有自己的付费订阅，建议替换默认配置以获得更好体验：
+
+1.  打开 `stable-config.yaml` 文件（使用记事本或 VS Code）。
+2.  搜索 `YOUR_SUBSCRIPTION_URL_HERE`。
+3.  将其替换为你自己的订阅链接（保留引号）。
+4.  保存文件，并在 Clash Verge 中刷新配置。
+
+## 
 ## 如何卸载
 
 1.  双击运行 **`Remove.bat`**。
@@ -56,7 +66,8 @@
 ## 致谢与声明
 
 本配置集成了以下开源项目的免费节点订阅，特此感谢：
-
+**启动延迟**：监控程序在开机自启时会有约 10 秒的延迟启动，这是为了等待系统网络就绪，请耐心等待托盘图标出现。
+*   
 1.  **Pawdroid**: [https://github.com/Pawdroid/Free-servers](https://github.com/Pawdroid/Free-servers)
 2.  **二猫子 (Ermaozi)**: [https://github.com/ermaozi/get_subscribe](https://github.com/ermaozi/get_subscribe)
 3.  **Anaer**: [https://github.com/anaer/Sub](https://github.com/anaer/Sub)
