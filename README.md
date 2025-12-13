@@ -1,5 +1,8 @@
 # Clash Verge 稳定配置包 & 监控工具
 
+> 🤖 **Powered by GitHub Copilot**
+> 本项目的所有代码逻辑、脚本编写及文档说明均由 GitHub Copilot 辅助完成。
+
 这个工具包包含了一套经过优化的 Clash Verge 配置文件，以及一个自动监控和重启 Clash 的托盘程序。
 
 ## 包含内容
