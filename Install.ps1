@@ -1,62 +1,68 @@
 <#
 .SYNOPSIS
-    Clash Verge 配置与监控一键安装脚本
+    Clash Verge Configuration & Monitor Installer
 #>
 
 $ErrorActionPreference = 'Stop'
 $ScriptDir = $PSScriptRoot
 
+function Pause-And-Exit {
+    Write-Host "`nPress any key to exit..."
+    $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
+    exit
+}
+
 Write-Host "==========================================" -ForegroundColor Cyan
-Write-Host "   Clash Verge 稳定配置 & 监控安装程序" -ForegroundColor Cyan
+Write-Host "   Clash Verge Monitor Installer" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# 1. 查找 Clash Verge 配置目录
+# 1. Find Clash Verge Profile Directory
 $AppData = [System.Environment]::GetFolderPath('ApplicationData')
 $ClashProfileDir = Join-Path $AppData "io.github.clash-verge-rev.clash-verge-rev\profiles"
 
-Write-Host "正在查找 Clash Verge 配置目录..."
+Write-Host "Searching for Clash Verge profile directory..."
 if (-not (Test-Path $ClashProfileDir)) {
-    Write-Warning "未找到默认配置目录: $ClashProfileDir"
-    Write-Host "请手动输入您的 Clash Verge profiles 目录路径 (直接回车退出):"
+    Write-Warning "Default profile directory not found: $ClashProfileDir"
+    Write-Host "Please manually enter your Clash Verge profiles directory path (Press Enter to exit):"
     $UserInput = Read-Host
     if ([string]::IsNullOrWhiteSpace($UserInput)) {
-        Write-Error "未提供路径，安装终止。"
-        exit
+        Write-Error "No path provided. Installation aborted."
+        Pause-And-Exit
     }
     $ClashProfileDir = $UserInput
 }
 
 if (-not (Test-Path $ClashProfileDir)) {
-    Write-Error "目录不存在: $ClashProfileDir"
-    exit
+    Write-Error "Directory does not exist: $ClashProfileDir"
+    Pause-And-Exit
 }
 
-Write-Host "目标目录: $ClashProfileDir" -ForegroundColor Green
+Write-Host "Target Directory: $ClashProfileDir" -ForegroundColor Green
 
-# 2. 复制配置文件
+# 2. Copy Config File
 $SourceConfig = Join-Path $ScriptDir "stable-config.yaml"
 $DestConfig = Join-Path $ClashProfileDir "stable-config.yaml"
 
-Write-Host "`n正在安装配置文件..."
+Write-Host "`nInstalling configuration file..."
 try {
     Copy-Item -Path $SourceConfig -Destination $DestConfig -Force
-    Write-Host "配置文件已复制到: $DestConfig" -ForegroundColor Green
-    Write-Host "请在 Clash Verge 中右键 'Profiles' -> 'Refresh'，然后选择 'stable-config'。" -ForegroundColor Yellow
+    Write-Host "Config copied to: $DestConfig" -ForegroundColor Green
+    Write-Host "Please go to Clash Verge -> Right click 'Profiles' -> 'Refresh', then select 'stable-config'." -ForegroundColor Yellow
 } catch {
-    Write-Error "复制配置文件失败: $_"
-    exit
+    Write-Error "Failed to copy config file: $_"
+    Pause-And-Exit
 }
 
-# 3. 设置开机自启监控
-Write-Host "`n正在设置监控程序开机自启..."
+# 3. Setup Startup Shortcut
+Write-Host "`nSetting up startup shortcut..."
 $StartupDir = [System.Environment]::GetFolderPath('Startup')
 $TargetBat = Join-Path $ScriptDir "Run_Monitor.bat"
 $LnkPath = Join-Path $StartupDir "VPN_Clash_Monitor.lnk"
 
 if (-not (Test-Path $TargetBat)) {
-    Write-Error "找不到启动脚本: $TargetBat"
-    exit
+    Write-Error "Startup script not found: $TargetBat"
+    Pause-And-Exit
 }
 
 try {
@@ -69,20 +75,20 @@ try {
     $Shortcut.Description = "Clash Monitor AutoStart"
     $Shortcut.Save()
     
-    Write-Host "开机自启快捷方式已创建: $LnkPath" -ForegroundColor Green
+    Write-Host "Startup shortcut created: $LnkPath" -ForegroundColor Green
 } catch {
-    Write-Error "创建快捷方式失败: $_"
-    exit
+    Write-Error "Failed to create shortcut: $_"
+    Pause-And-Exit
 }
 
-# 4. 立即启动监控
-Write-Host "`n是否立即启动监控程序? (Y/N)"
+# 4. Start Monitor Now
+Write-Host "`nStart the monitor now? (Y/N)"
 $RunNow = Read-Host
 if ($RunNow -eq 'Y' -or $RunNow -eq 'y') {
     Start-Process $TargetBat
-    Write-Host "监控程序已启动 (请检查托盘图标)" -ForegroundColor Green
+    Write-Host "Monitor started (Check your system tray)" -ForegroundColor Green
 }
 
-Write-Host "`n安装完成！" -ForegroundColor Cyan
+Write-Host "`nInstallation Complete!" -ForegroundColor Cyan
 Write-Host "按任意键退出..."
 $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')
