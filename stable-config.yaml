@@ -1,0 +1,402 @@
+# Clash Verge 稳定连接配置模板
+# 更新日期：2025年12月12日
+# 功能：自动健康检查、智能切换、故障转移
+
+# 混合端口配置
+mixed-port: 7897
+allow-lan: true
+bind-address: '*'
+mode: rule
+log-level: info
+ipv6: false
+external-controller: 127.0.0.1:9090
+
+# DNS 配置 - 提高解析稳定性
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53
+  enhanced-mode: fake-ip
+  respect-rules: true
+  proxy-server-nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+    - 223.5.5.5
+    - 119.29.29.29
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - 'localhost.ptlogin2.qq.com'
+    - '+.srv.nintendo.net'
+    - '+.stun.playstation.net'
+    - '+.msftconnecttest.com'
+    - '+.msftncsi.com'
+    - '+.xboxlive.com'
+    - 'msftconnecttest.com'
+    - 'xbox.*.microsoft.com'
+    - '*.battlenet.com.cn'
+    - '*.battlenet.com'
+    - '*.blzstatic.cn'
+    - '*.battle.net'
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - 114.114.114.114
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  fallback:
+    - https://1.1.1.1/dns-query
+    - https://dns.google/dns-query
+    - tls://8.8.8.8:853
+    - tls://1.1.1.1:853
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    ipcidr:
+      - 240.0.0.0/4
+
+# ============ 代理配置区 ============
+# 请将你的订阅节点粘贴到这里，或使用 proxy-providers
+proxies:
+  # 示例节点（请替换为你的实际节点）
+  # - name: "HK-01"
+  #   type: ss
+  #   server: your-server.com
+  #   port: 8388
+  #   cipher: aes-256-gcm
+  #   password: your-password
+  #   udp: true
+
+# 代理提供者（推荐使用订阅）
+proxy-providers:
+  # 订阅源 1
+  subscription-1:
+    type: http
+    url: "YOUR_SUBSCRIPTION_URL_HERE"
+    interval: 3600  # 每小时更新一次
+    path: ./profiles/subscription-1.yaml
+    health-check:
+      enable: true
+      interval: 60   # 每1分钟检查一次
+      lazy: false     # 启动时立即检查
+      url: http://www.gstatic.com/generate_204
+      timeout: 3000
+
+  # 订阅源 2
+  subscription-2:
+    type: http
+    url: "YOUR_SUBSCRIPTION_URL_HERE"
+    interval: 3600
+    path: ./profiles/subscription-2.yaml
+    health-check:
+      enable: true
+      interval: 60
+      lazy: false
+      url: http://www.gstatic.com/generate_204
+      timeout: 3000
+
+  # 订阅源 3
+  subscription-3:
+    type: http
+    url: "YOUR_SUBSCRIPTION_URL_HERE"
+    interval: 3600
+    path: ./profiles/subscription-3.yaml
+    health-check:
+      enable: true
+      interval: 60
+      lazy: false
+      url: http://www.gstatic.com/generate_204
+      timeout: 3000
+
+  # 新增：Pawdroid 源 https://github.com/Pawdroid/Free-servers
+  Pawdroid:
+    type: http
+    url: "https://proxy.v2gh.com/https://raw.githubusercontent.com/Pawdroid/Free-servers/main/sub"
+    interval: 3600
+    path: ./providers/pawdroid.yaml
+    health-check:
+      enable: true
+      interval: 120
+      url: http://www.gstatic.com/generate_204
+
+  # 新增：二猫子 源 https://github.com/ermaozi/get_subscribe
+  Ermaozi:
+    type: http
+    url: "https://git.io/emzclash"
+    interval: 3600
+    path: ./providers/ermaozi.yaml
+    health-check:
+      enable: true
+      interval: 120
+      url: http://www.gstatic.com/generate_204
+
+  # 新增：Anaer 源 https://github.com/anaer/Sub
+  # Anaer:
+  #   type: http
+  #   url: "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml"
+  #   interval: 3600
+  #   path: ./providers/anaer.yaml
+  #   health-check:
+  #     enable: true
+  #     interval: 600
+  #     url: http://www.gstatic.com/generate_204
+
+# ============ 代理组配置 - 核心稳定策略 ============
+proxy-groups:
+  # 主选择器 - 手动选择或自动模式
+  - name: "节点选择"
+    type: select
+    proxies:
+      - 自动选择
+      - 故障转移
+      - 订阅1自动
+      - 订阅2自动
+      - 订阅3自动
+      - Pawdroid自动
+      - Ermaozi自动
+      # - Anaer自动
+      - 负载均衡
+      - DIRECT
+
+  # 自动选择 - 根据延迟自动选最快节点
+  - name: "自动选择"
+    type: url-test
+    use:
+      - subscription-1
+      - subscription-2
+      - subscription-3
+      - Pawdroid
+      - Ermaozi
+      # - Anaer
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60       # 优化：每1分钟测速，避免断连
+    tolerance: 50      # 延迟差50ms内不切换，避免频繁切换
+    timeout: 3000
+    lazy: false
+
+  # 单订阅自动选择 - 细粒度控制
+  - name: "订阅1自动"
+    type: url-test
+    use:
+      - subscription-1
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
+  - name: "订阅2自动"
+    type: url-test
+    use:
+      - subscription-2
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
+  - name: "订阅3自动"
+    type: url-test
+    use:
+      - subscription-3
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
+  - name: "Pawdroid自动"
+    type: url-test
+    use:
+      - Pawdroid
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
+  - name: "Ermaozi自动"
+    type: url-test
+    use:
+      - Ermaozi
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
+  # - name: "Anaer自动"
+  #   type: url-test
+  #   use:
+  #     - Anaer
+  #   url: 'http://www.gstatic.com/generate_204'
+  #   interval: 300
+  #   tolerance: 50
+  #   timeout: 3000
+  #   lazy: false
+
+  # 故障转移 - 主节点失败时自动切换
+  - name: "故障转移"
+    type: fallback
+    use:
+      - subscription-1
+      - subscription-2
+      - subscription-3
+      - Pawdroid
+      - Ermaozi
+      # - Anaer
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    timeout: 3000
+    lazy: false
+
+  # 负载均衡 - 分散请求到多个节点
+  - name: "负载均衡"
+    type: load-balance
+    use:
+      - subscription-1
+      - subscription-2
+      - subscription-3
+      - Pawdroid
+      - Ermaozi
+      # - Anaer
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 60
+    strategy: consistent-hashing  # 保持同一域名使用同一节点
+    lazy: false
+
+  - name: "全球直连"
+    type: select
+    proxies:
+      - DIRECT
+      - 节点选择
+
+  - name: "广告拦截"
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
+  - name: "漏网之鱼"
+    type: select
+    proxies:
+      - 节点选择
+      - DIRECT
+
+# ============ 规则提供者 - 使用活跃维护的规则 ============
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./ruleset/reject.yaml
+    interval: 86400
+
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt"
+    path: ./ruleset/icloud.yaml
+    interval: 86400
+
+  apple:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./ruleset/apple.yaml
+    interval: 86400
+
+  google:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./ruleset/google.yaml
+    interval: 86400
+
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+
+  direct:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./ruleset/direct.yaml
+    interval: 86400
+
+  private:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./ruleset/private.yaml
+    interval: 86400
+
+  gfw:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt"
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+
+  lancidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt"
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+
+# ============ 分流规则 ============
+rules:
+  # 本地网络
+  - RULE-SET,private,DIRECT
+  - RULE-SET,lancidr,DIRECT
+
+  # 广告拦截
+  - RULE-SET,reject,广告拦截
+
+  # 应用分流
+  - RULE-SET,telegramcidr,节点选择
+  - DOMAIN-SUFFIX,telegram.org,节点选择
+  - DOMAIN-KEYWORD,youtube,节点选择
+  - DOMAIN-SUFFIX,googlevideo.com,节点选择
+  - DOMAIN-SUFFIX,ytimg.com,节点选择
+  - DOMAIN-KEYWORD,netflix,节点选择
+  - DOMAIN-SUFFIX,netflix.com,节点选择
+  - DOMAIN-SUFFIX,nflxvideo.net,节点选择
+
+  # 服务商
+  - RULE-SET,icloud,全球直连
+  - RULE-SET,apple,全球直连
+  - RULE-SET,google,节点选择
+  - DOMAIN-SUFFIX,microsoft.com,全球直连
+  - DOMAIN-SUFFIX,windows.com,全球直连
+
+  # 代理与直连
+  - RULE-SET,proxy,节点选择
+  - RULE-SET,gfw,节点选择
+  - RULE-SET,direct,全球直连
+  - RULE-SET,cncidr,全球直连
+  - GEOIP,CN,全球直连
+
+  # 兜底规则
+  - MATCH,漏网之鱼
