@@ -157,7 +157,7 @@ proxy-groups:
       - 订阅3自动
       - Pawdroid自动
       - Ermaozi自动
-      # - Anaer自动
+      - Anaer自动
       - 负载均衡
       - DIRECT
 
@@ -170,7 +170,7 @@ proxy-groups:
       - subscription-3
       - Pawdroid
       - Ermaozi
-      # - Anaer
+      - Anaer
     url: 'http://www.gstatic.com/generate_204'
     interval: 60       # 优化：每1分钟测速，避免断连
     tolerance: 50      # 延迟差50ms内不切换，避免频繁切换
@@ -247,7 +247,7 @@ proxy-groups:
       - subscription-3
       - Pawdroid
       - Ermaozi
-      # - Anaer
+      - Anaer
     url: 'http://www.gstatic.com/generate_204'
     interval: 60
     timeout: 3000
@@ -262,7 +262,7 @@ proxy-groups:
       - subscription-3
       - Pawdroid
       - Ermaozi
-      # - Anaer
+      - Anaer
     url: 'http://www.gstatic.com/generate_204'
     interval: 60
     strategy: consistent-hashing  # 保持同一域名使用同一节点
