@@ -75,7 +75,7 @@ proxy-providers:
   # 订阅源 1
   subscription-1:
     type: http
-    url: "YOUR_SUBSCRIPTION_URL_HERE"
+    url: "https://www.djjc.cfd/api/v1/client/subscribe?token=3ad17745283e1fb2406f21610748705f"
     interval: 3600  # 每小时更新一次
     path: ./profiles/subscription-1.yaml
     health-check:
@@ -88,7 +88,7 @@ proxy-providers:
   # 订阅源 2
   subscription-2:
     type: http
-    url: "YOUR_SUBSCRIPTION_URL_HERE"
+    url: "https://5VWGa5U.doggygosubs.com:8443/api/v1/client/29cb2b1bff7f117bf9c63330f8937a5e"
     interval: 3600
     path: ./profiles/subscription-2.yaml
     health-check:
@@ -101,7 +101,7 @@ proxy-providers:
   # 订阅源 3
   subscription-3:
     type: http
-    url: "YOUR_SUBSCRIPTION_URL_HERE"
+    url: "https://pfacz.no-mad-world.club/link/xnRrTaTZd1ubP4A6?clash=3&extend=1"
     interval: 3600
     path: ./profiles/subscription-3.yaml
     health-check:
@@ -134,15 +134,15 @@ proxy-providers:
       url: http://www.gstatic.com/generate_204
 
   # 新增：Anaer 源 https://github.com/anaer/Sub
-  # Anaer:
-  #   type: http
-  #   url: "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml"
-  #   interval: 3600
-  #   path: ./providers/anaer.yaml
-  #   health-check:
-  #     enable: true
-  #     interval: 600
-  #     url: http://www.gstatic.com/generate_204
+  Anaer:
+    type: http
+    url: "https://raw.githubusercontent.com/anaer/Sub/main/clash.yaml"
+    interval: 3600
+    path: ./providers/anaer.yaml
+    health-check:
+      enable: true
+      interval: 600
+      url: http://www.gstatic.com/generate_204
 
 # ============ 代理组配置 - 核心稳定策略 ============
 proxy-groups:
@@ -228,15 +228,15 @@ proxy-groups:
     timeout: 3000
     lazy: false
 
-  # - name: "Anaer自动"
-  #   type: url-test
-  #   use:
-  #     - Anaer
-  #   url: 'http://www.gstatic.com/generate_204'
-  #   interval: 300
-  #   tolerance: 50
-  #   timeout: 3000
-  #   lazy: false
+  - name: "Anaer自动"
+    type: url-test
+    use:
+      - Anaer
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 300
+    tolerance: 50
+    timeout: 3000
+    lazy: false
 
   # 故障转移 - 主节点失败时自动切换
   - name: "故障转移"
@@ -400,3 +400,4 @@ rules:
 
   # 兜底规则
   - MATCH,漏网之鱼
+

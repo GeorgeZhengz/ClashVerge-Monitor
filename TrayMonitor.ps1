@@ -38,7 +38,7 @@ $CheckInterval = 5000
 $TimeoutSec = 2
 
 # --- Auto Restart Config ---
-$FailThreshold = 3            # Restart after 3 consecutive fails (approx 15s)
+$FailThreshold = 6            # Restart after 6 consecutive fails (approx 30s)
 $ApiPort = 9097               # Clash Verge API Port
 $ApiSecret = "set-your-secret" # API Secret
 $script:AutoRestartEnabled = $true
