@@ -52,6 +52,16 @@
     *   退出监控程序。
 *   **双击图标**: 尝试打开 Clash Verge 主界面。
 
+## 致谢与声明
+
+本配置集成了以下开源项目的免费节点订阅，特此感谢：
+
+1.  **Pawdroid**: [https://github.com/Pawdroid/Free-servers](https://github.com/Pawdroid/Free-servers)
+2.  **二猫子 (Ermaozi)**: [https://github.com/ermaozi/get_subscribe](https://github.com/ermaozi/get_subscribe)
+3.  **Anaer**: [https://github.com/anaer/Sub](https://github.com/anaer/Sub)
+
+*注：免费节点稳定性可能不如付费节点，建议作为备用或测试使用。*
+
 ## 注意事项
 
 *   如果你的 Clash Verge 安装路径不是默认路径，监控程序可能会提示找不到路径，请确保 Clash Verge 正在运行，或者手动修改 `TrayMonitor.ps1` 中的路径。
