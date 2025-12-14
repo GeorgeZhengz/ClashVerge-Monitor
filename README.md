@@ -82,15 +82,15 @@
 *   **右键菜单**:
     *   **Enable Auto Restart**: 开启/关闭 "自动重启" 功能。
     *   **Start on Boot**: 开启/关闭 "开机自启" 功能。（此选项会自动在系统启动文件夹中创建或删除快捷方式，取消勾选即彻底关闭自启）。
-    *   **Show Daily Report**: 手动打开当天的 HTML 统计报表。
+    *   **Show Daily Report**: 打开当天的报表文件夹，查看历史统计快照。
     *   **Show Debug Info**: 显示当前 API 端口、密钥、Clash 路径及连接状态等调试信息。
     *   **Exit Monitor**: 退出监控程序。
 *   **数据统计机制**:
     *   **⚠️ 本功能正常运行需要开启Clash设置中的外部控制功能** 
-    *   如果功能无法正常运行并且确认已开启外部控制，请检查**Show Debug Info**的信息与TrayMonitor.ps1中是否一致。
+    如果功能无法正常运行并且确认已开启外部控制，请检查**Show Debug Info**的信息与TrayMonitor.ps1中是否一致。
     *   **采集频率**: 每 5 秒采集一次节点连通性数据（内存中）。
     *   **保存频率**: 每 5 分钟将统计数据写入 `NodeStats.json`（硬盘）。
-    *   **报表生成**: 每 1 小时自动生成 `DailyReport_日期.html` 可视化报表。
+    *   **报表生成**: 每 1 小时自动在 `Reports/日期/` 文件夹下生成 HTML 可视化报表和 JSON 快照。
 *   **双击图标**: 尝试打开 Clash Verge 主界面。
 
 ## 致谢与声明

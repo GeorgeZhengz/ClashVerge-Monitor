@@ -797,8 +797,8 @@ function Check-Connection {
             $notifyIcon.Text = $statusMsg
         }
         
-        # Chart Generation (Every 10 Minutes)
-        if ((Get-Date) -gt $script:LastChartTime.AddMinutes(10)) {
+        # Hourly Chart Generation
+        if ((Get-Date) -gt $script:LastChartTime.AddHours(1)) {
             Generate-Chart
             $script:LastChartTime = Get-Date
         }
