@@ -57,9 +57,11 @@
 如果你有自己的付费订阅，建议替换默认配置以获得更好体验：
 
 1.  打开 `stable-config.yaml` 文件（使用记事本或 VS Code）。
-2.  搜索 `YOUR_SUBSCRIPTION_URL_HERE`。
-3.  将其替换为你自己的订阅链接（保留引号）。
+2.  在 `proxy-providers` 区域添加你的订阅源。
+3.  在 `proxy-groups` 区域将你的订阅源名称添加到相应的策略组中。
 4.  保存文件，并在 Clash Verge 中刷新配置。
+
+> **注意**：本项目提供的 `stable-config.yaml` 仅包含公共免费节点。如果你需要使用私有节点，请自行添加，但请勿将包含私有 Token 的配置文件上传到公共仓库。
 
 ## 如何卸载
 

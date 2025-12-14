@@ -1,4 +1,4 @@
-# Clash Verge 稳定连接配置模板
+﻿# Clash Verge 稳定连接配置模板
 # 更新日期：2025年12月12日
 # 功能：自动健康检查、智能切换、故障转移
 
@@ -9,7 +9,7 @@ bind-address: '*'
 mode: rule
 log-level: info
 ipv6: false
-external-controller: 127.0.0.1:9090
+# external-controller: 127.0.0.1:9090 # 由 Clash Verge 托管，避免冲突
 
 # DNS 配置 - 提高解析稳定性
 dns:
@@ -72,45 +72,6 @@ proxies:
 
 # 代理提供者（推荐使用订阅）
 proxy-providers:
-  # 订阅源 1
-  subscription-1:
-    type: http
-    url: "YOUR_SUBSCRIPTION_URL_HERE"
-    interval: 3600  # 每小时更新一次
-    path: ./profiles/subscription-1.yaml
-    health-check:
-      enable: true
-      interval: 60   # 每1分钟检查一次
-      lazy: false     # 启动时立即检查
-      url: http://www.gstatic.com/generate_204
-      timeout: 3000
-
-  # 订阅源 2
-  subscription-2:
-    type: http
-    url: "YOUR_SUBSCRIPTION_URL_HERE"
-    interval: 3600
-    path: ./profiles/subscription-2.yaml
-    health-check:
-      enable: true
-      interval: 60
-      lazy: false
-      url: http://www.gstatic.com/generate_204
-      timeout: 3000
-
-  # 订阅源 3
-  subscription-3:
-    type: http
-    url: "YOUR_SUBSCRIPTION_URL_HERE"
-    interval: 3600
-    path: ./profiles/subscription-3.yaml
-    health-check:
-      enable: true
-      interval: 60
-      lazy: false
-      url: http://www.gstatic.com/generate_204
-      timeout: 3000
-
   # 新增：Pawdroid 源 https://github.com/Pawdroid/Free-servers
   Pawdroid:
     type: http
@@ -151,10 +112,9 @@ proxy-groups:
     type: select
     proxies:
       - 自动选择
+      - ChatGPT
+      - Gemini
       - 故障转移
-      - 订阅1自动
-      - 订阅2自动
-      - 订阅3自动
       - Pawdroid自动
       - Ermaozi自动
       - Anaer自动
@@ -165,46 +125,12 @@ proxy-groups:
   - name: "自动选择"
     type: url-test
     use:
-      - subscription-1
-      - subscription-2
-      - subscription-3
-      - Pawdroid
-      - Ermaozi
-      - Anaer
+      - Pawdroid       # Pawdroid源
+      - Ermaozi        # 二猫子源
+      - Anaer          # Anaer源
     url: 'http://www.gstatic.com/generate_204'
     interval: 60       # 优化：每1分钟测速，避免断连
     tolerance: 50      # 延迟差50ms内不切换，避免频繁切换
-    timeout: 3000
-    lazy: false
-
-  # 单订阅自动选择 - 细粒度控制
-  - name: "订阅1自动"
-    type: url-test
-    use:
-      - subscription-1
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 60
-    tolerance: 50
-    timeout: 3000
-    lazy: false
-
-  - name: "订阅2自动"
-    type: url-test
-    use:
-      - subscription-2
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 60
-    tolerance: 50
-    timeout: 3000
-    lazy: false
-
-  - name: "订阅3自动"
-    type: url-test
-    use:
-      - subscription-3
-    url: 'http://www.gstatic.com/generate_204'
-    interval: 60
-    tolerance: 50
     timeout: 3000
     lazy: false
 
@@ -238,13 +164,42 @@ proxy-groups:
     timeout: 3000
     lazy: false
 
+  # ChatGPT 专属分组 - 自动优选
+  - name: "ChatGPT"
+    type: url-test
+    use:
+      - Pawdroid
+      - Ermaozi
+      - Anaer
+    # 过滤保留常见支持 ChatGPT 的地区
+    filter: "(?i)美|US|United|SG|Singapore|狮城|JP|Japan|日本|KR|Korea|韩|TW|Taiwan|台|UK|Britain|英"
+    url: 'http://chat.openai.com/cdn-cgi/trace'
+    expected-status: 200 # 仅 Clash Meta 内核支持：要求返回 200 OK 才算可用
+    interval: 300
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
+  # Gemini 专属分组 - 自动优选
+  - name: "Gemini"
+    type: url-test
+    use:
+      - Pawdroid
+      - Ermaozi
+      - Anaer
+    # 过滤保留常见支持 Gemini 的地区
+    filter: "(?i)美|US|United|SG|Singapore|狮城|JP|Japan|日本|KR|Korea|韩|TW|Taiwan|台|UK|Britain|英"
+    url: 'https://gemini.google.com'
+    expected-status: 200 # 仅 Clash Meta 内核支持
+    interval: 300
+    tolerance: 50
+    timeout: 3000
+    lazy: false
+
   # 故障转移 - 主节点失败时自动切换
   - name: "故障转移"
     type: fallback
     use:
-      - subscription-1
-      - subscription-2
-      - subscription-3
       - Pawdroid
       - Ermaozi
       - Anaer
@@ -257,9 +212,6 @@ proxy-groups:
   - name: "负载均衡"
     type: load-balance
     use:
-      - subscription-1
-      - subscription-2
-      - subscription-3
       - Pawdroid
       - Ermaozi
       - Anaer
@@ -374,6 +326,16 @@ rules:
   # 广告拦截
   - RULE-SET,reject,广告拦截
 
+  # AI 服务分流
+  - DOMAIN-SUFFIX,openai.com,ChatGPT
+  - DOMAIN-SUFFIX,chatgpt.com,ChatGPT
+  - DOMAIN-SUFFIX,oaistatic.com,ChatGPT
+  - DOMAIN-SUFFIX,oaiusercontent.com,ChatGPT
+  - DOMAIN-KEYWORD,openai,ChatGPT
+  - DOMAIN-SUFFIX,bard.google.com,Gemini
+  - DOMAIN-SUFFIX,gemini.google.com,Gemini
+  - DOMAIN-KEYWORD,gemini,Gemini
+
   # 应用分流
   - RULE-SET,telegramcidr,节点选择
   - DOMAIN-SUFFIX,telegram.org,节点选择
@@ -397,7 +359,10 @@ rules:
   - RULE-SET,direct,全球直连
   - RULE-SET,cncidr,全球直连
   - GEOIP,CN,全球直连
+  - DOMAIN-SUFFIX,cn,全球直连
 
   # 兜底规则
   - MATCH,漏网之鱼
+
+
 

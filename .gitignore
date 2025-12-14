@@ -1,5 +1,6 @@
 *.log
-chat.json
-chat1.json
+*.json
+*.html
 window_state.json
 .vscode/
+stable-config.private.yaml
