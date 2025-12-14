@@ -488,7 +488,7 @@ function Generate-Chart {
                 if ($nTotal -gt 0) { $nRate = [math]::Round(($n.Success / $nTotal) * 100, 1) }
                 $nDuration = [math]::Round($n.Duration / 60, 1)
                 
-                $Rows += "<tr class='node-row'><td class='node-name'>└─ $nName</td><td>$($n.Success)</td><td>$($n.Fail)</td><td>$nRate%</td><td>$nDuration min</td></tr>"
+                $Rows += "<tr class='node-row'><td class='node-name'>&#9492;&#9472; $nName</td><td>$($n.Success)</td><td>$($n.Fail)</td><td>$nRate%</td><td>$nDuration min</td></tr>"
             }
         }
     }
@@ -516,7 +516,7 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 <div class="container">
 <h2>Clash Proxy Daily Report ($Today)</h2>
 <p class="timestamp">Generated at: $(Get-Date -Format 'HH:mm:ss')</p>
-<div class="best">🏆 Best Performing Provider: $BestProvider</div>
+<div class="best">&#127942; Best Performing Provider: $BestProvider</div>
 <table>
 <tr><th>Provider / Node</th><th>Success Checks</th><th>Fail Checks</th><th>Success Rate</th><th>Connected Duration</th></tr>
 $Rows
