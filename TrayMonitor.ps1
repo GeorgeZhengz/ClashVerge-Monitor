@@ -437,9 +437,27 @@ function Generate-Chart {
     $Today = Get-Date -Format 'yyyy-MM-dd'
     if (-not $script:StatsCache.ContainsKey($Today)) { return }
     
-    $ReportPath = "$PSScriptRoot\DailyReport_$Today.html"
+    # Create Daily Report Folder
+    $ReportDir = "$PSScriptRoot\Reports\$Today"
+    if (-not (Test-Path $ReportDir)) {
+        New-Item -ItemType Directory -Path $ReportDir -Force | Out-Null
+    }
+
+    $TimeStr = Get-Date -Format 'HH-mm'
+    $ReportPath = "$ReportDir\Report_$TimeStr.html"
+    $JsonPath = "$ReportDir\Stats_$TimeStr.json"
+    
     $Data = $script:StatsCache[$Today]
     
+    # Save Raw JSON Snapshot
+    try {
+        $jsonStr = $Data | ConvertTo-Json -Depth 5
+        if ($jsonStr -is [array]) { $jsonStr = $jsonStr -join "`r`n" }
+        [System.IO.File]::WriteAllText($JsonPath, $jsonStr, [System.Text.Encoding]::UTF8)
+    } catch {
+        Write-Log "Failed to save JSON snapshot: $_"
+    }
+
     # Calculate Best Provider
     $BestProvider = "None"
     $BestScore = -1
@@ -509,17 +527,18 @@ $Rows
 "@
     # Use .NET directly to ensure strict UTF-8 writing (Fixes Emoji/Chinese issues)
     [System.IO.File]::WriteAllText($ReportPath, $Html, [System.Text.Encoding]::UTF8)
-    Write-Log "Hourly Chart Generated: $ReportPath"
+    Write-Log "Chart Generated: $ReportPath"
 }
 
 function Show-Report {
-    # Open the HTML report if it exists, otherwise show simple msg
+    # Open the Daily Report Folder
     $Today = Get-Date -Format 'yyyy-MM-dd'
-    $ReportPath = "$PSScriptRoot\DailyReport_$Today.html"
-    if (Test-Path $ReportPath) {
-        Start-Process $ReportPath
+    $ReportDir = "$PSScriptRoot\Reports\$Today"
+    
+    if (Test-Path $ReportDir) {
+        Invoke-Item $ReportDir
     } else {
-        [System.Windows.Forms.MessageBox]::Show("Report not yet generated. Wait for the next hourly update or check logs.", "Clash Monitor")
+        [System.Windows.Forms.MessageBox]::Show("No reports generated for today yet. Wait for the next update (every 10 mins).", "Clash Monitor")
     }
 }
 
@@ -778,8 +797,8 @@ function Check-Connection {
             $notifyIcon.Text = $statusMsg
         }
         
-        # Hourly Chart Generation
-        if ((Get-Date) -gt $script:LastChartTime.AddHours(1)) {
+        # Chart Generation (Every 10 Minutes)
+        if ((Get-Date) -gt $script:LastChartTime.AddMinutes(10)) {
             Generate-Chart
             $script:LastChartTime = Get-Date
         }
