@@ -321,6 +321,7 @@ rule-providers:
 rules:
   # 自定义直连规则 (修复 vscode.js.cn 访问问题)
   - DOMAIN-SUFFIX,vscode.js.cn,全球直连
+  - DOMAIN-SUFFIX,pingcode.com,全球直连
 
   # 本地网络
   - RULE-SET,private,DIRECT
