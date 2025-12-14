@@ -459,7 +459,20 @@ function Generate-Chart {
             $BestProvider = $pName
         }
         
-        $Rows += "<tr><td>$pName</td><td>$($p.SuccessCount)</td><td>$($p.FailCount)</td><td>$Rate%</td><td>$DurationMins min</td></tr>"
+        $Rows += "<tr><td><strong>$pName</strong></td><td>$($p.SuccessCount)</td><td>$($p.FailCount)</td><td>$Rate%</td><td>$DurationMins min</td></tr>"
+        
+        # Add Node Details
+        if ($p.Nodes) {
+            foreach ($nName in $p.Nodes.Keys) {
+                $n = $p.Nodes[$nName]
+                $nTotal = $n.Success + $n.Fail
+                $nRate = 0
+                if ($nTotal -gt 0) { $nRate = [math]::Round(($n.Success / $nTotal) * 100, 1) }
+                $nDuration = [math]::Round($n.Duration / 60, 1)
+                
+                $Rows += "<tr class='node-row'><td class='node-name'>└─ $nName</td><td>$($n.Success)</td><td>$($n.Fail)</td><td>$nRate%</td><td>$nDuration min</td></tr>"
+            }
+        }
     }
     
     $Html = @"
@@ -477,6 +490,8 @@ th { background-color: #0078d4; color: white; }
 tr:nth-child(even) { background-color: #f9f9f9; }
 .best { color: #107c10; font-weight: bold; font-size: 1.2em; margin: 10px 0; }
 .timestamp { color: #666; font-size: 0.9em; }
+.node-row { background-color: #f0f8ff; font-size: 0.9em; color: #555; }
+.node-name { padding-left: 30px; }
 </style>
 </head>
 <body>
@@ -485,14 +500,15 @@ tr:nth-child(even) { background-color: #f9f9f9; }
 <p class="timestamp">Generated at: $(Get-Date -Format 'HH:mm:ss')</p>
 <div class="best">🏆 Best Performing Provider: $BestProvider</div>
 <table>
-<tr><th>Provider Source</th><th>Success Checks</th><th>Fail Checks</th><th>Success Rate</th><th>Connected Duration</th></tr>
+<tr><th>Provider / Node</th><th>Success Checks</th><th>Fail Checks</th><th>Success Rate</th><th>Connected Duration</th></tr>
 $Rows
 </table>
 </div>
 </body>
 </html>
 "@
-    $Html | Set-Content $ReportPath -Encoding UTF8
+    # Use .NET directly to ensure strict UTF-8 writing (Fixes Emoji/Chinese issues)
+    [System.IO.File]::WriteAllText($ReportPath, $Html, [System.Text.Encoding]::UTF8)
     Write-Log "Hourly Chart Generated: $ReportPath"
 }
 
