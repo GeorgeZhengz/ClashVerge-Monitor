@@ -1,6 +1,5 @@
 *.log
 *.json
 *.html
-window_state.json
 .vscode/
 stable-config.private.yaml
