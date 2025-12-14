@@ -75,7 +75,7 @@ proxy-providers:
   # 订阅源 1
   subscription-1:
     type: http
-    url: "https://www.djjc.cfd/api/v1/client/subscribe?token=3ad17745283e1fb2406f21610748705f"
+    url: "YOUR_SUBSCRIPTION_URL_HERE"
     interval: 3600  # 每小时更新一次
     path: ./profiles/subscription-1.yaml
     health-check:
@@ -88,7 +88,7 @@ proxy-providers:
   # 订阅源 2
   subscription-2:
     type: http
-    url: "https://5VWGa5U.doggygosubs.com:8443/api/v1/client/29cb2b1bff7f117bf9c63330f8937a5e"
+    url: "YOUR_SUBSCRIPTION_URL_HERE"
     interval: 3600
     path: ./profiles/subscription-2.yaml
     health-check:
@@ -101,7 +101,7 @@ proxy-providers:
   # 订阅源 3
   subscription-3:
     type: http
-    url: "https://pfacz.no-mad-world.club/link/xnRrTaTZd1ubP4A6?clash=3&extend=1"
+    url: "YOUR_SUBSCRIPTION_URL_HERE"
     interval: 3600
     path: ./profiles/subscription-3.yaml
     health-check:
