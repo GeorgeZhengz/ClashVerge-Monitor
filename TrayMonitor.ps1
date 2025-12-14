@@ -328,56 +328,6 @@ if (Test-Path $StatsPath) {
     }
 }
 
-function Get-ProviderForNode {
-    param($NodeName)
-    
-    if ([string]::IsNullOrEmpty($NodeName)) { return "Unknown-Provider" }
-
-    # Update map every 10 minutes or if empty
-    if ($script:ProviderMap.Count -eq 0 -or (Get-Date) -gt $script:LastProviderMapTime.AddMinutes(10)) {
-        try {
-            $headers = @{}
-            if ($ApiSecret -ne "") { $headers["Authorization"] = "Bearer $ApiSecret" }
-            $uri = "http://127.0.0.1:$ApiPort/providers/proxies"
-            # Removed -TimeoutSec for PS 5.1 compatibility
-            $json = Invoke-RestMethod -Uri $uri -Headers $headers -Method Get -ErrorAction Stop
-            
-            if ($json -and $json.providers) {
-                $newMap = @{}
-                # Handle PSObject properties safely
-                $providers = $json.providers
-                if ($providers -is [System.Management.Automation.PSCustomObject]) {
-                    $propNames = $providers.PSObject.Properties.Name
-                } elseif ($providers -is [System.Collections.IDictionary]) {
-                    $propNames = $providers.Keys
-                } else {
-                    $propNames = @()
-                }
-
-                foreach ($providerName in $propNames) {
-                    if ($providerName -eq "default" -or $providerName -eq "compatible") { continue }
-                    $proxies = $providers.$providerName.proxies
-                    if ($proxies) {
-                        foreach ($proxy in $proxies) {
-                            $newMap[$proxy.name] = $providerName
-                        }
-                    }
-                }
-                $script:ProviderMap = $newMap
-                $script:LastProviderMapTime = Get-Date
-                Write-Log "Provider Map Updated. Count: $($newMap.Count)"
-            }
-        } catch {
-            Write-Log "Failed to update provider map: $_"
-        }
-    }
-    
-    if ($script:ProviderMap.ContainsKey($NodeName)) {
-        return $script:ProviderMap[$NodeName]
-    }
-    return "Unknown-Provider"
-}
-
 function Update-Stats {
     param($Status, $NodeName, $ProviderName, $DurationInc)
     
@@ -664,43 +614,61 @@ function Get-ProviderForNode {
     # Special handling for System/Built-in nodes
     if ($NodeName -eq "DIRECT" -or $NodeName -eq "REJECT") { return "System" }
 
-    # Update map every 10 minutes or if empty
-    if ($script:ProviderMap.Count -eq 0 -or (Get-Date) -gt $script:LastProviderMapTime.AddMinutes(10)) {
-        $uri = "http://127.0.0.1:$ApiPort/providers/proxies"
-        $json = Invoke-ApiReq -Uri $uri -TimeoutSec 2
-        
-        if ($json -and $json.providers) {
-            $newMap = @{}
-            $providers = $json.providers
-            # Handle different object types from ConvertFrom-Json
-            if ($providers -is [System.Management.Automation.PSCustomObject]) {
-                $propNames = $providers.PSObject.Properties.Name
-            } elseif ($providers -is [System.Collections.IDictionary]) {
-                $propNames = $providers.Keys
-            } else {
-                $propNames = @()
-            }
+    # Define update logic as a scriptblock to reuse
+    $UpdateLogic = {
+        try {
+            $uri = "http://127.0.0.1:$ApiPort/providers/proxies"
+            $json = Invoke-ApiReq -Uri $uri -TimeoutSec 2
+            
+            if ($json -and $json.providers) {
+                $newMap = @{}
+                $providers = $json.providers
+                if ($providers -is [System.Management.Automation.PSCustomObject]) {
+                    $propNames = $providers.PSObject.Properties.Name
+                } elseif ($providers -is [System.Collections.IDictionary]) {
+                    $propNames = $providers.Keys
+                } else {
+                    $propNames = @()
+                }
 
-            foreach ($providerName in $propNames) {
-                if ($providerName -eq "default" -or $providerName -eq "compatible") { continue }
-                $proxies = $providers.$providerName.proxies
-                if ($proxies) {
-                    foreach ($proxy in $proxies) {
-                        # Skip built-in types in provider map to avoid overwriting real providers
-                        if ($proxy.name -eq "DIRECT" -or $proxy.name -eq "REJECT") { continue }
-                        $newMap[$proxy.name] = $providerName
+                foreach ($providerName in $propNames) {
+                    if ($providerName -eq "default" -or $providerName -eq "compatible") { continue }
+                    $proxies = $providers.$providerName.proxies
+                    if ($proxies) {
+                        foreach ($proxy in $proxies) {
+                            if ($proxy.name -eq "DIRECT" -or $proxy.name -eq "REJECT") { continue }
+                            $newMap[$proxy.name] = $providerName
+                        }
                     }
                 }
+                $script:ProviderMap = $newMap
+                $script:LastProviderMapTime = Get-Date
+                Write-Log "Provider Map Updated. Count: $($newMap.Count)"
             }
-            $script:ProviderMap = $newMap
-            $script:LastProviderMapTime = Get-Date
-            Write-Log "Provider Map Updated. Count: $($newMap.Count)"
+        } catch {
+            Write-Log "Failed to update provider map: $_"
         }
     }
+
+    # 1. Regular Update (every 10 mins)
+    if ($script:ProviderMap.Count -eq 0 -or (Get-Date) -gt $script:LastProviderMapTime.AddMinutes(10)) {
+        & $UpdateLogic
+    }
     
+    # 2. Check Map
     if ($script:ProviderMap.ContainsKey($NodeName)) {
         return $script:ProviderMap[$NodeName]
     }
+
+    # 3. Force Update if Unknown and not recently updated (prevent spamming API)
+    if ((Get-Date) -gt $script:LastProviderMapTime.AddSeconds(15)) {
+        Write-Log "Node '$NodeName' not found. Forcing map update..."
+        & $UpdateLogic
+        if ($script:ProviderMap.ContainsKey($NodeName)) {
+            return $script:ProviderMap[$NodeName]
+        }
+    }
+
     return "Unknown-Provider"
 }
 
