@@ -323,6 +323,12 @@ rules:
   - DOMAIN-SUFFIX,vscode.js.cn,全球直连
   - DOMAIN-SUFFIX,pingcode.com,全球直连
 
+  # Cursor 规则 (强制走代理，解决 VPN Error)
+  - DOMAIN-SUFFIX,cursor.sh,ChatGPT
+  - DOMAIN-SUFFIX,cursor.com,ChatGPT
+  - DOMAIN-SUFFIX,cursor-cdn.com,ChatGPT
+  - DOMAIN-SUFFIX,todesktop.com,ChatGPT
+
   # 本地网络
   - RULE-SET,private,DIRECT
   - RULE-SET,lancidr,DIRECT
